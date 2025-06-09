@@ -1,4 +1,11 @@
 <?php
+// Ta linia pozwala na zapytania z dowolnej domeny. Rozwiązuje problem CORS.
+header("Access-Control-Allow-Origin: *");
+
+// Reszta Twojego kodu...
+header('Content-Type: application/json');
+
+// ... i tak dalej
 // Ustawienie, aby odpowiedzi były w formacie JSON
 header('Content-Type: application/json');
 
