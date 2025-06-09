@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zapisane Analizy (Snapshoty)</title>
+  <link rel="stylesheet" href="css/style.css">
+   <script>
+        if (!sessionStorage.getItem('userRole') || !sessionStorage.getItem('loggedInTeamName')) {
+             alert('Musisz być zalogowany do drużyny, aby korzystać ze snapshotów.');
+             window.location.replace('index.html');
+        }
+    </script>
+   <style>
+       .snapshot-entry { margin-bottom: 25px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; background: rgba(20, 20, 30, 0.7); }
+       .snapshot-entry h3 { margin-top: 0; margin-bottom: 10px; color: #66bfff; cursor: pointer; display: inline-block; }
+       .snapshot-details { display: none; margin-top: 10px; font-size: 0.9em; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; color: #ccc; max-height: 600px; overflow-y: auto; }
+       .snapshot-delete-button { float: right; font-size: 0.8em; padding: 3px 8px; background-color: #f04f4f; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 10px; }
+       .snapshot-delete-button:hover { background-color: #d9534f; }
+       .snapshot-details table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; background-color: rgba(40, 40, 50, 0.7); border-radius: 4px; overflow: hidden; }
+       .snapshot-details th, .snapshot-details td { border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 10px; text-align: left; vertical-align: middle; }
+       .snapshot-details th { background-color: rgba(70, 70, 85, 0.85); font-weight: 600; color: #f0f0f0; }
+       .snapshot-details td { color: #d5d5d5; }
+       .snapshot-details tr:nth-child(even) td { background-color: rgba(50, 50, 60, 0.6); }
+   </style>
+</head>
+<body>
+<header>
+    <h1>📊 Zapisane Analizy (Snapshoty)</h1>
+    <a href="index.html" style="color: #66bfff; text-decoration: none; display: block; text-align: center; margin-bottom: 10px;">← Wróć do panelu głównego</a>
+</header>
+<main>
+  <section id="lista-analiz">
+     <!-- Lista snapshotów zostanie wygenerowana przez skrypt -->
+  </section>
+</main>
+<script>
+    // Ten skrypt działa lokalnie, bo snapshoty są w localStorage
+    function formatValue(value, precision = 1) {
+        if (value === undefined || value === null || isNaN(value)) return 'N/A';
+        if (typeof value === 'number') return value.toFixed(precision);
+        return value;
+    }
+     function calculateAverage(total, count, precision = 1) {
+        if (count === 0) return 'N/A';
+        const avg = total / count;
+        return formatValue(avg, precision);
+    }
+    function renderSnapshotDetails(snapshot) { /* ... skopiuj ze starego analiza.html (teraz usunięty) ... */ }
+    function displaySnapshots() {
+        const lista = document.getElementById('lista-analiz');
+        lista.innerHTML = '';
+        let savedAnalyses = [];
+        try { savedAnalyses = JSON.parse(localStorage.getItem('cs2SavedAnalyses') || '[]'); }
+        catch(e) { lista.innerHTML = '<p>Błąd wczytywania snapshotów.</p>'; return; }
+
+        if (!savedAnalyses.length) { lista.innerHTML = '<p>Brak zapisanych snapshotów analiz.</p>'; return; }
+
+        savedAnalyses.reverse().forEach((snapshot, index) => {
+            const originalIndex = savedAnalyses.length - 1 - index;
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'snapshot-entry';
+            const date = new Date(snapshot.timestamp).toLocaleString('pl-PL');
+             const mapFilter = snapshot.filters?.map || 'Wszystkie';
+             const playerNicks = snapshot.players?.map(p => p.name).join(', ') || snapshot.teamRoster?.join(', ') || 'Nieznany skład'; // Pobierz nicki z snapshotu
+             const targetInfo = playerNicks.substring(0,50) + (playerNicks.length > 50 ? '...' : '');
+
+
+            entryDiv.innerHTML = `
+                <button class="snapshot-delete-button" data-index="${originalIndex}">Usuń</button>
+                <h3>📌 Snapshot z: ${date}</h3>
+                <p style="font-size: 0.9em; color: #aaa;">(Skład: ${targetInfo} | Mapa: ${mapFilter})</p>
+                <div class="snapshot-details">
+                    <h4>Informacje Ogólne:</h4>
+                    <p>Data zapisu: ${new Date(snapshot.timestamp).toLocaleString('pl-PL')}<br>
+                    Analizowani gracze: ${snapshot.players?.map(p => p.name).join(', ') || 'Brak'}<br>
+                    Filtr daty od: ${snapshot.filters?.dateFrom || 'Brak'} | Filtr daty do: ${snapshot.filters?.dateTo || 'Brak'}<br>
+                    Filtr mapy: ${snapshot.filters?.map || 'Wszystkie'}</p>
+
+                    <h4>Podsumowanie Ogólne Graczy:</h4>
+                    ${snapshot.summary ? buildSnapshotSummaryTable(snapshot.summary) : '<p>Brak danych podsumowania.</p>'}
+
+                    <h4>Wydajność na Mapach:</h4>
+                     ${snapshot.mapPerformance ? buildSnapshotMapPerformance(snapshot.mapPerformance) : '<p>Brak danych wydajności na mapach.</p>'}
+
+                    <h4 style="margin-top: 20px; cursor: pointer;">Pokaż Surowy JSON</h4>
+                    <pre class="raw-json" style="display: none; white-space: pre-wrap; word-break: break-all; background: #111; padding: 5px; font-size: 0.8em;"><code>${JSON.stringify(snapshot, null, 2)}</code></pre>
+                 </div> `;
+
+            entryDiv.querySelector('h3').onclick = () => { const detailsDiv = entryDiv.querySelector('.snapshot-details'); detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none'; };
+             entryDiv.querySelector('.raw-json').previousElementSibling.onclick = () => { const pre = entryDiv.querySelector('.raw-json'); pre.style.display = pre.style.display === 'none' ? 'block' : 'none'; };
+            entryDiv.querySelector('.snapshot-delete-button').onclick = (e) => { e.stopPropagation(); if (confirm(`Usunąć snapshot z ${date}?`)) deleteSnapshot(originalIndex); };
+            lista.appendChild(entryDiv);
+        });
+    }
+     function buildSnapshotSummaryTable(summary) {
+         let html = '<table><thead><tr><th>Gracz</th><th>Mecze</th><th>WR%</th><th>Śr. K/D</th><th>Śr. ADR</th><th>Σ K</th><th>Σ D</th></tr></thead><tbody>';
+         Object.entries(summary).sort((a, b) => a[0].localeCompare(b[0])).forEach(([nick, s]) => {
+             if (s.played > 0) {
+                  html += `<tr>
+                      <td>${s.name}</td>
+                      <td>${s.played}</td>
+                      <td>${calculateAverage(s.wins * 100, s.played, 1)}%</td>
+                      <td>${calculateAverage(s.kd, s.played, 2)}</td>
+                      <td>${calculateAverage(s.adr, s.played, 1)}</td>
+                      <td>${s.kills}</td>
+                      <td>${s.deaths}</td>
+                  </tr>`;
+             }
+         });
+         html += '</tbody></table>'; return html;
+     }
+     function buildSnapshotMapPerformance(mapPerformance) {
+         let html = '';
+         for(const nick in mapPerformance) {
+             const mapStats = mapPerformance[nick];
+              if(Object.keys(mapStats).length === 0) continue;
+              html += `<h5>Statystyki map dla: ${nick}</h5>`;
+              html += '<table><thead><tr><th>Mapa</th><th>Mecze</th><th>WR%</th><th>Śr. K/D</th></tr></thead><tbody>';
+              Object.entries(mapStats).sort((a,b) => a[0].localeCompare(b[0])).forEach(([map, s]) => {
+                  if (s.played > 0) {
+                       html += `<tr>
+                           <td>${map}</td>
+                           <td>${s.played}</td>
+                           <td>${calculateAverage(s.wins * 100, s.played, 1)}%</td>
+                           <td>${calculateAverage(s.kd, s.played, 2)}</td>
+                       </tr>`;
+                  }
+              });
+              html += '</tbody></table>';
+         }
+          return html || 'Brak danych wydajności na mapach.';
+     }
+
+
+    function deleteSnapshot(indexToDelete) {
+         try {
+             let savedAnalyses = JSON.parse(localStorage.getItem('cs2SavedAnalyses') || '[]');
+             if (indexToDelete >= 0 && indexToDelete < savedAnalyses.length) {
+                 savedAnalyses.splice(indexToDelete, 1);
+                 localStorage.setItem('cs2SavedAnalyses', JSON.stringify(savedAnalyses));
+                 displaySnapshots();
+             } else { alert("Nie można usunąć snapshotu - nieprawidłowy indeks."); }
+         } catch (e) { console.error("Błąd usuwania snapshotu:", e); alert("Wystąpił błąd podczas usuwania snapshotu."); }
+    }
+
+    displaySnapshots();
+</script>
+</body>
+</html>

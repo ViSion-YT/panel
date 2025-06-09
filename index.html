@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>VISTATS - Panel Główny</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="vistats.png" type="image/png">
+    <script>
+        if (!sessionStorage.getItem('userRole')) { window.location.replace('gate.html'); }
+    </script>
+    <style>
+        .box { position: relative; }
+        .locked-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-align: center; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div id="online-counter-container">
+                <span class="online-dot"></span>
+                <span id="online-count">1</span>
+                <span class="online-text">online</span>
+            </div>
+            <h1>VISTATS - Panel Główny</h1>
+            <div id="user-info-container">
+                <span id="headerInfo" style="color: #ccc;"></span>
+                <button id="logoutButton" onclick="logout()" style="display: none; margin-left: 15px; padding: 5px 10px; font-size: 0.9em; background: #c9302c;">Wyloguj</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="box" id="adminPanel" style="display: none;">
+                <h3>Panel Administratora</h3>
+                <p>Możesz tworzyć nowe drużyny, które będą dostępne dla graczy.</p>
+                <hr style="width: 80%; border-color: rgba(255,255,255,0.1);">
+                <h4>Stwórz nową drużynę</h4>
+                <input type="text" id="newTeamName" placeholder="Nazwa drużyny...">
+                <input type="text" id="newTeamPassword" placeholder="Hasło dla drużyny...">
+                <textarea id="newTeamFaceitLinks" placeholder="Wklej linki do profili Faceit, każdy w nowej linii..." style="min-height: 80px;"></textarea>
+                <button id="createTeamButton">Stwórz Drużynę</button>
+                <p id="adminStatus" style="min-height: 1.2em;"></p>
+            </div>
+            <div class="box" id="playerLoginPanel" style="display: none;">
+                <h3>Logowanie do Drużyny</h3>
+                <p>Aby uzyskać dostęp do paneli, zaloguj się do swojej drużyny.</p>
+                <input type="text" id="loginTeamName" placeholder="Nazwa drużyny...">
+                <input type="password" id="loginTeamPassword" placeholder="Hasło drużyny...">
+                <button id="loginTeamButton">Zaloguj</button>
+                <p id="playerLoginStatus" style="min-height: 1.2em;"></p>
+            </div>
+            <div class="box" id="analysisBox">
+                <div class="locked-overlay"><p>Zaloguj się do drużyny, aby odblokować.</p></div>
+                <h3>ANALIZA</h3>
+                <button onclick="window.location.href='analiza.html'">Analiza Drużyny</button>
+                <button onclick="window.location.href='analiza.html#match-analysis-section'">Analiza Meczu</button>
+                <button onclick="window.location.href='snapshoty.html'">Zapisane Analizy</button>
+            </div>
+            <div class="box" id="trainingBox">
+                <div class="locked-overlay"><p>Zaloguj się do drużyny, aby odblokować.</p></div>
+                <h3>TRENING</h3>
+                <button onclick="window.location.href='notatnik.html'">Notatnik Taktyczny</button>
+                <button onclick="window.location.href='taktyki.html'">Baza Wiedzy</button>
+                <button onclick="window.location.href='terminarz.html'">Terminarz</button>
+            </div>
+            <div class="box" id="teamBox">
+                 <div class="locked-overlay"><p>Zaloguj się do drużyny, aby odblokować.</p></div>
+                <h3>DRUŻYNA</h3>
+                <p id="teamBoxInfo" style="font-size: 0.9em; color: #aaa;">Zarządzaj składem i rolami.</p>
+                <button onclick="window.location.href='team-manager.html'">Zarządzaj</button>
+            </div>
+             <div class="box" id="adminDashboardBox" style="display: none;">
+                <h3>👑 Panel Administratora</h3>
+                <p style="font-size: 0.9em; color: #aaa;">Zarządzaj wszystkimi drużynami, użytkownikami i ustawieniami systemu.</p>
+                <button onclick="window.location.href='admin-dashboard.html'" style="background-color: #f0ad4e;">Otwórz Panel</button>
+            </div>
+        </div>
+    </main>
+    <script src="js/main-panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Taktyczna Tablica - Notatnik CS2</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="vistats.png" type="image/png">
+    <script>
+        if (!sessionStorage.getItem('userRole') || !sessionStorage.getItem('loggedInTeamName')) {
+             alert('Musisz być zalogowany do drużyny, aby korzystać z notatnika.');
+             window.location.replace('index.html');
+        }
+    </script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .tactical-board { display: flex; gap: 20px; flex-wrap: wrap; }
+        .notes-list-container { flex: 1; min-width: 300px; }
+        .note-editor-container { flex: 2; min-width: 400px; }
+        #notes-list { max-height: 600px; overflow-y: auto; padding-right: 10px; }
+        .note-item { padding: 12px 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 5px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+        .note-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .note-item.active { background: rgba(102, 191, 255, 0.2); border-color: rgba(102, 191, 255, 0.6); }
+        .note-title { font-weight: bold; font-size: 1.1em; color: #e0e0e0; margin-bottom: 5px; }
+        .note-meta { font-size: 0.85em; color: #aaa; }
+        .note-meta .map-tag, .note-meta .category-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; margin-right: 5px; }
+        .note-meta .map-tag { background: #555; }
+        .note-meta .category-tag { background: #4a4a6a; }
+        #editor-container { height: 400px; background-color: #fff; color: #111; border-radius: 5px; overflow: hidden; }
+        .ql-toolbar { background: #3a3a4a; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; }
+        .ql-snow .ql-stroke, .ql-snow .ql-fill, .ql-snow .ql-picker-label { color: #ccc !important; }
+        .editor-actions { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; }
+        #delete-note-button { background-color: #d9534f; }
+        #delete-note-button:hover:not(:disabled) { background-color: #c9302c; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; color: white; font-size: 1.5em; }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">Ładowanie danych...</div>
+    <header>
+        <h1>Taktyczna Tablica</h1>
+        <a href="index.html" style="color: #66bfff;">← Wróć do panelu głównego</a>
+    </header>
+    <main>
+        <div class="tactical-board">
+            <section class="notes-list-container">
+                <h2>Twoje Notatki</h2>
+                <button id="new-note-button" style="width: 100%; margin-bottom: 15px;">+ Stwórz nową notatkę</button>
+                <div id="notes-list"></div>
+            </section>
+            <section class="note-editor-container">
+                <h2 id="editor-header">Wybierz notatkę lub stwórz nową</h2>
+                <div id="editor-fields" style="display: none;">
+                    <label for="note-title-input">Tytuł:</label>
+                    <input type="text" id="note-title-input" placeholder="np. Szybki rush B na Mirage" style="width: 100%; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label for="note-category-select">Kategoria:</label>
+                            <select id="note-category-select" style="width: 100%;"><option value="Taktyka">Taktyka</option><option value="Analiza Przeciwnika">Analiza Przeciwnika</option><option value="Błędy do poprawy">Błędy do poprawy</option><option value="Granaty">Granaty</option><option value="Ogólne">Ogólne</option></select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="note-map-select">Mapa:</label>
+                            <select id="note-map-select" style="width: 100%;"><option value="Brak">Brak</option><option value="de_mirage">Mirage</option><option value="de_inferno">Inferno</option><option value="de_nuke">Nuke</option><option value="de_overpass">Overpass</option><option value="de_vertigo">Vertigo</option><option value="de_ancient">Ancient</option><option value="de_anubis">Anubis</option></select>
+                        </div>
+                    </div>
+                    <div id="editor-container"></div>
+                    <div class="editor-actions">
+                        <button id="save-note-button">Zapisz zmiany</button>
+                        <button id="delete-note-button">Usuń notatkę</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="js/notatnik.js"></script>
+</body>
+</html>

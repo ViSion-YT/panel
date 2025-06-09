@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zapisane Taktyki i Notatki</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="vistats.png" type="image/png">
+    <script>
+        if (!sessionStorage.getItem('userRole') || !sessionStorage.getItem('loggedInTeamName')) {
+             window.location.replace('gate.html');
+        }
+    </script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .filters { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tactic-card { padding: 20px; background: rgba(20, 20, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-left: 4px solid #66bfff; border-radius: 5px; margin-bottom: 20px; }
+        .tactic-card h3 { margin-top: 0; cursor: pointer; }
+        .tactic-content { display: none; margin-top: 15px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; line-height: 1.6; }
+        .tactic-content p, .tactic-content ol, .tactic-content ul, .tactic-content h1, .tactic-content h2 { margin-bottom: 1em; }
+        .note-meta { font-size: 0.9em; color: #aaa; margin-top: -10px; margin-bottom: 10px; }
+        .note-meta .map-tag, .note-meta .category-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; margin-right: 5px; }
+        .note-meta .map-tag { background: #555; }
+        .note-meta .category-tag { background: #4a4a6a; }
+        .edit-button { float: right; background-color: #f0ad4e; font-size: 0.9em; padding: 6px 12px; }
+        .edit-button:hover:not(:disabled) { background-color: #ec971f; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; color: white; font-size: 1.5em; }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">Ładowanie bazy wiedzy...</div>
+    <header><h1>📘 Baza Wiedzy - Taktyki i Notatki</h1><a href="index.html" style="color: #66bfff;">← Wróć do panelu głównego</a></header>
+    <main>
+        <section>
+            <div style="margin-bottom: 20px;">
+                <button onclick="window.location.href='notatnik.html'">Przejdź do edytora taktyk</button>
+            </div>
+            <div class="filters">
+                <div><label for="map-filter">Filtruj wg mapy:</label><select id="map-filter"><option value="Wszystkie">Wszystkie</option><option value="Brak">Brak</option><option value="de_mirage">Mirage</option><option value="de_inferno">Inferno</option><option value="de_nuke">Nuke</option><option value="de_overpass">Overpass</option><option value="de_vertigo">Vertigo</option><option value="de_ancient">Ancient</option><option value="de_anubis">Anubis</option></select></div>
+                <div><label for="category-filter">Filtruj wg kategorii:</label><select id="category-filter"><option value="Wszystkie">Wszystkie</option><option value="Taktyka">Taktyka</option><option value="Analiza Przeciwnika">Analiza Przeciwnika</option><option value="Błędy do poprawy">Błędy do poprawy</option><option value="Granaty">Granaty</option><option value="Ogólne">Ogólne</option></select></div>
+            </div>
+            <div id="tactics-list"></div>
+        </section>
+    </main>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="js/taktyki.js"></script>
+</body>
+</html>

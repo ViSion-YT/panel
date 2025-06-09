@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dostęp do Panelu</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        if (sessionStorage.getItem('userRole')) { window.location.replace('index.html'); }
+    </script>
+    <style>
+        body { display: flex; align-items: center; justify-content: center; }
+        .gate-container { text-align: center; max-width: 400px; }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="gate-container">
+            <h3>Panel Drużyny VISTATS</h3>
+            <p>Podaj kod dostępu, aby kontynuować.</p>
+            <input type="password" id="accessCode" placeholder="Kod dostępu..." style="text-align: center;">
+            <button onclick="checkCode()">Wejdź</button>
+            <p id="status" style="color: #f04f4f; min-height: 1.2em;"></p>
+        </section>
+    </main>
+    <script>
+        const ADMIN_CODE = "admin123";
+        const PLAYER_CODE = "player123";
+
+        function checkCode() {
+            const inputCode = document.getElementById('accessCode').value;
+            let role = null;
+            if (inputCode === ADMIN_CODE) role = 'admin';
+            else if (inputCode === PLAYER_CODE) role = 'player';
+
+            if (role) {
+                sessionStorage.setItem('userRole', role);
+                window.location.replace('index.html');
+            } else {
+                document.getElementById('status').innerText = 'Nieprawidłowy kod dostępu.';
+            }
+        }
+        document.getElementById('accessCode').addEventListener('keypress', e => { if (e.key === 'Enter') checkCode(); });
+    </script>
+</body>
+</html>

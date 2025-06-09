@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Zaawansowany Panel Analizy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="vistats.png" type="image/png">
+    <script>
+        if (!sessionStorage.getItem('userRole') || !sessionStorage.getItem('loggedInTeamName')) {
+             alert('Musisz być zalogowany do drużyny, aby korzystać z analizy.');
+             window.location.replace('index.html');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <header><h1>📊 Zaawansowany Panel Analizy</h1><a href="index.html" style="color: #66bfff;">← Wróć</a></header>
+    <main>
+        <section id="config">
+            <h2>Konfiguracja Analizy</h2>
+            <div class="config-choice">
+                <label><input type="radio" name="analysis-type" value="team" checked> Analizuj drużynę: <strong id="analyzed-team-name" style="color:#66bfff;"></strong></label>
+                <label><input type="radio" name="analysis-type" value="custom"> Analizuj niestandardowe nicki</label>
+            </div>
+            <div id="custom-nicknames-config" style="display: none;">
+                <textarea id="custom-nicknames-input" placeholder="Wpisz nicki Faceit oddzielone przecinkami lub każdy w nowej linii..."></textarea>
+            </div>
+        </section>
+        <section id="filters">
+             <h2>Filtry i Akcje</h2>
+             <div class="filter-group">
+                 <label for="date-from">Data od:</label> <input type="date" id="date-from">
+                 <label for="date-to">Data do:</label> <input type="date" id="date-to">
+                 <label for="map-filter">Mapa:</label>
+                 <select id="map-filter"><option value="">Wszystkie</option><option value="de_mirage">Mirage</option><option value="de_inferno">Inferno</option><option value="de_nuke">Nuke</option><option value="de_overpass">Overpass</option><option value="de_vertigo">Vertigo</option><option value="de_ancient">Ancient</option><option value="de_anubis">Anubis</option></select>
+             </div>
+             <button id="fetch-data-button">Pobierz i Analizuj Dane</button>
+             <div id="loading-indicator" style="display: none; margin-top: 15px;">
+                <progress id="progress-bar" value="0" max="100" style="width: 100%;"></progress>
+                <p id="progress-text" style="text-align: center; color: #aaa; margin-top: 5px;"></p>
+            </div>
+        </section>
+        <div id="error-message" class="error-box" style="display: none;"></div>
+        <section id="results-container" style="display: none;">
+            <details open><summary><h3>Podsumowanie Ogólne</h3></summary><div id="player-summary-output"></div></details>
+            <details><summary><h3>Wydajność na Mapach</h3></summary><div id="map-performance-output"></div></details>
+        </section>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>
