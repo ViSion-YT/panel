@@ -1,52 +1,91 @@
 <?php
-// Plik: proxy.php - ULEPSZONA WERSJA
+// Ustawienie, aby odpowiedzi były w formacie JSON
+header('Content-Type: application/json');
 
-// Ustaw nagłówki, aby zezwolić na zapytania z dowolnego źródła (dobre dla dewelopmentu)
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
+// ##################################################################
+// # WAŻNE: Wklej tutaj swój klucz API z portalu Faceit Developers  #
+// ##################################################################
+$faceitApiKey = '3daa12e4-1ec0-4ced-8d06-61c4073c211c';
 
-// Twój klucz API Faceit - jedyne miejsce, gdzie go trzymamy
-$faceitApiKey = '531c6bf2-b10d-4aed-9081-d5736b27dc39';
+// Funkcja pomocnicza do wykonywania zapytań do API Faceit
+function callFaceitApi($url, $apiKey) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $apiKey
+    ]);
+    $output = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-$faceitApiBaseUrl = 'https://open.faceit.com/data/v4';
+    // Jeśli API zwróciło błąd, zwracamy null
+    if ($httpcode != 200) {
+        return null;
+    }
 
-// Sprawdź, czy frontend przekazał parametr 'endpoint'
-if (!isset($_GET['endpoint']) || empty($_GET['endpoint'])) {
-    http_response_code(400); // Bad Request
-    echo json_encode(['error' => 'Brak parametru "endpoint" w zapytaniu do proxy.']);
+    return json_decode($output);
+}
+
+// Sprawdzanie, czy akcja to 'search'
+$action = $_GET['action'] ?? '';
+if ($action !== 'search') {
+    echo json_encode(['error' => 'Nieprawidłowa akcja.']);
     exit;
 }
 
-$endpoint = $_GET['endpoint'];
-unset($_GET['endpoint']);
-
-$queryString = http_build_query($_GET);
-
-$apiUrl = $faceitApiBaseUrl . $endpoint;
-if (!empty($queryString)) {
-    $apiUrl .= '?' . $queryString;
+// Sprawdzanie, czy podano nick
+$nickname = $_GET['nickname'] ?? '';
+if (empty($nickname)) {
+    echo json_encode(['error' => 'Nie podano nazwy gracza.']);
+    exit;
 }
 
-// Użyj cURL do bezpiecznego wykonania zapytania serwer-do-serwera
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $apiUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $faceitApiKey]);
-// Opcjonalnie: dodaj User-Agent, aby wyglądać jak przeglądarka
-curl_setopt($ch, CURLOPT_USERAGENT, 'VISTATS Analysis Panel');
-
-$response = curl_exec($ch);
-$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlError = curl_error($ch);
-curl_close($ch);
-
-// Zwróć odpowiedź z Faceit (lub błąd) do frontendu
-if ($curlError) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Błąd cURL w proxy', 'details' => $curlError]);
-} else {
-    http_response_code($httpcode);
-    echo $response;
+// Sprawdzanie, czy klucz API został wklejony
+if ($faceitApiKey === 'TUTAJ_WKLEJ_SWÓJ_KLUCZ_API_SERVER_SIDE') {
+    echo json_encode(['error' => 'Błąd konfiguracji serwera: Brak klucza API Faceit w pliku api.php.']);
+    exit;
 }
-exit;
+
+// --- KROK 1: Pobierz podstawowe dane gracza (w tym jego ID) ---
+$playerDetailsUrl = "https://open.faceit.com/data/v4/players?nickname=" . urlencode($nickname);
+$playerData = callFaceitApi($playerDetailsUrl, $faceitApiKey);
+
+// Sprawdzamy, czy gracz został znaleziony
+if (!$playerData || !isset($playerData->player_id)) {
+    echo json_encode(['error' => 'Nie znaleziono gracza o podanej nazwie.']);
+    exit;
+}
+
+$playerId = $playerData->player_id;
+$avatar = $playerData->avatar ?? 'https://faceitfinder.com/themes/dark/images/new-avatar.png'; // Domyślny avatar, jeśli brak
+$country = $playerData->country;
+$steamNickname = $playerData->steam_nickname;
+
+// --- KROK 2: Pobierz statystyki gracza dla CS2 używając jego ID ---
+$playerStatsUrl = "https://open.faceit.com/data/v4/players/{$playerId}/stats/cs2";
+$statsData = callFaceitApi($playerStatsUrl, $faceitApiKey);
+
+if (!$statsData || !isset($statsData->lifetime)) {
+    echo json_encode(['error' => 'Nie udało się pobrać statystyk dla tego gracza.']);
+    exit;
+}
+
+// Przygotowanie odpowiedzi dla frontendu
+$response = [
+    'nickname' => $playerData->nickname,
+    'avatar' => $avatar,
+    'country' => $country,
+    'steam_nickname' => $steamNickname,
+    'faceit_url' => $playerData->faceit_url,
+    'elo' => $playerData->games->cs2->faceit_elo ?? 'Brak', // ELO dla CS2
+    'level' => $playerData->games->cs2->skill_level ?? 'Brak',
+    'kd' => $statsData->lifetime->{'Average K/D Ratio'} ?? 'N/A',
+    'matches' => $statsData->lifetime->{'Matches'} ?? 'N/A',
+    'winrate' => $statsData->lifetime->{'Win Rate %'} ?? 'N/A',
+];
+
+// Wysłanie gotowej odpowiedzi w formacie JSON
+echo json_encode($response);
+
 ?>
